@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private TextView showPeriodText;
-    private Button button;
+    private ImageButton button;
     private ImageView increase;
     private ImageView decrease;
     private long period = 60_000;
@@ -38,17 +38,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         showPeriodText = (TextView) findViewById(R.id.showPeriod);
-        button = (Button) findViewById(R.id.button);
+        button = (ImageButton) findViewById(R.id.button);
         increase = (ImageView) findViewById(R.id.increase);
         decrease = (ImageView) findViewById(R.id.decrease);
 
         showPeriodText.setText(ShowPeriod(period));
 
+
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(!started && isPeriodValid(period)) {
-                    button.setText("СТОП");
+                    button.setImageResource(R.drawable.stop);
                     started = true;
                     timer = new Timer();
                     myTimerTask = new MyTimerTask(textView, MainActivity.this);
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     started = false;
                     timer.cancel();
-                    button.setText("СТАРТ");
+                    button.setImageResource(R.drawable.go);
                 }
             }
         });
