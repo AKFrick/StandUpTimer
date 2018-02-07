@@ -1,9 +1,13 @@
 package com.akf.standuptimer;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -18,9 +22,8 @@ import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    private Timer timer;
-    private MyTimerTask myTimerTask;
+    ZingZing mService;
+    boolean mBound = false;
 
     private TextView textView;
     private TextView showPeriodText;
@@ -52,13 +55,11 @@ public class MainActivity extends AppCompatActivity {
                 if(!started && isPeriodValid(period)) {
                     button.setImageResource(R.drawable.stop);
                     started = true;
-                    timer = new Timer();
-                    myTimerTask = new MyTimerTask(textView, MainActivity.this);
-                    timer.schedule(myTimerTask, 2000,period);
+                    mService.startSchedule(period);
                 } else {
                     started = false;
-                    timer.cancel();
                     button.setImageResource(R.drawable.go);
+                    mService.stopSchedule();
                 }
             }
         });
@@ -81,6 +82,38 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    @Override
+    protected void onStart(){
+        super.onStart();
+        Intent intent = new Intent(this, ZingZing.class);
+        //startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            ZingZing.LocalBinder binder = (ZingZing.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
     private void IncreasePeriod(){
         period += periodStep;
 
@@ -100,24 +133,5 @@ public class MainActivity extends AppCompatActivity {
         else
             return true;
     }
-    class MyTimerTask extends TimerTask {
-        private TextView textView;
-        Activity activity;
-        MyTimerTask(TextView textView, Activity activity){
-            this.activity = activity;
-            this.textView = textView;
-        }
-        @Override
-        public void run() {
 
-            MediaPlayer mp = MediaPlayer.create(activity, R.raw.svist);
-            mp.start();
-            /*runOnUiThread(new Runnable(){
-                @Override
-                public void run(){
-
-                }
-            }); */
-        }
-    }
 }
